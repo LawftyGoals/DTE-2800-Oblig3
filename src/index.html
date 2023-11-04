@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Startprosjekt, three.js</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="/lib/ammo/ammo.js"></script>
+  <script type="module">
+    import { main } from "./script.js";
+
+    Ammo().then(async function (AmmoLib) {
+      Ammo = AmmoLib;
+      main();
+    })
+  </script>
+</head>
+
+<body>
+  <div id="canvasDiv">
+    <div style="top:0px; left:15px; width:100%; text-align: left; color:black; position:absolute" class="ui">
+      <h2>Startprosjekt, three.js</h2>
+    </div>
+  </div>
+</body>
+
+
+</html>
