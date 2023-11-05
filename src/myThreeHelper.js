@@ -212,9 +212,22 @@ export function handleKeys(delta, arm) {
             arm.firstLeftDigitRotX = arm.firstLeftDigitRotX + (rotationSpeed * delta);
             arm.firstLeftDigitRotX %= (Math.PI * 2);
 
-
             arm.firstRightDigitRotX = arm.firstRightDigitRotX - (rotationSpeed * delta);
             arm.firstRighttDigitRotX %= (Math.PI * 2);
+
+
+            arm.secondLeftDigitRotX = arm.secondLeftDigitRotX + (rotationSpeed * delta);
+            arm.secondLeftDigitRotX %= (Math.PI * 2);
+
+            arm.secondRightDigitRotX = arm.secondRightDigitRotX - (rotationSpeed * delta);
+            arm.secondRighttDigitRotX %= (Math.PI * 2);
+
+
+            arm.thirdLeftDigitRotX = arm.thirdLeftDigitRotX + (rotationSpeed * delta);
+            arm.thirdLeftDigitRotX %= (Math.PI * 2);
+
+            arm.thirdRightDigitRotX = arm.thirdRightDigitRotX - (rotationSpeed * delta);
+            arm.thirdRighttDigitRotX %= (Math.PI * 2);
         }
     }
     if (ri.currentlyPressedKeys["KeyE"]) {
@@ -222,9 +235,22 @@ export function handleKeys(delta, arm) {
             arm.firstLeftDigitRotX = arm.firstLeftDigitRotX - (rotationSpeed * delta);
             arm.firstLeftDigitRotX %= (Math.PI * 2);
 
-
             arm.firstRightDigitRotX = arm.firstRightDigitRotX + (rotationSpeed * delta);
             arm.firstRighttDigitRotX %= (Math.PI * 2);
+
+
+            arm.secondLeftDigitRotX = arm.secondLeftDigitRotX - (rotationSpeed * delta);
+            arm.secondLeftDigitRotX %= (Math.PI * 2);
+
+            arm.secondRightDigitRotX = arm.secondRightDigitRotX + (rotationSpeed * delta);
+            arm.secondRighttDigitRotX %= (Math.PI * 2);
+
+
+            arm.thirdLeftDigitRotX = arm.thirdLeftDigitRotX - (rotationSpeed * delta);
+            arm.thirdLeftDigitRotX %= (Math.PI * 2);
+
+            arm.thirdRightDigitRotX = arm.thirdRightDigitRotX + (rotationSpeed * delta);
+            arm.thirdRighttDigitRotX %= (Math.PI * 2);
         }
     }
 
