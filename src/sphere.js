@@ -34,9 +34,15 @@ export function createSphere(baseTexture, name = "base", wRadius = 1, mass = 0, 
 
     phy.ammoPhysicsWorld.addRigidBody(rigidBody);
 
-    addMeshToScene(mesh);
 
-    phy.rigidBodies.push(mesh);
-    rigidBody.threeMesh = mesh;
+    return {
+        mesh: mesh,
+        rigidBody: rigidBody
+    }
+
+    //addMeshToScene(mesh);
+    //
+    //phy.rigidBodies.push(mesh);
+    //rigidBody.threeMesh = mesh;
 
 }

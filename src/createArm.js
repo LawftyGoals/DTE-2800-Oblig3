@@ -45,35 +45,93 @@ scene.add( cylinder );
 
 
 export function createArm(textureObject) {
+    let armMass = 0;
+
+    //shpere info
+    let baseSphereRadius = 10;
+    let baseSpherePosition = { x: 0, y: 0, z: 0 };
+
+    //basepole info
+    let basePoleSize = { x: 5, y: 20, z: 5 };
+    let basePolePosition = { x: 0, y: baseSphereRadius - 1, z: 0 };
 
 
     //create base group
-    const arm = new THREE.Group();
+    const armMesh = new THREE.Group();
+    armMesh.name = "arm";
 
-    let sphereBase = createSphere(textureObject[1], "sphereBase", 10);
 
-    let baseCube = createCube();
+    // BASE SPHERE
+    let geometryBaseSphere = new THREE.SphereGeometry(baseSphereRadius, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    let meshBaseSphere = new THREE.Mesh(geometryBaseSphere, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff, side: THREE.DoubleSide }));
+    meshBaseSphere.name = "baseSphere"
+    meshBaseSphere.position.set(baseSpherePosition.x, baseSpherePosition.y, baseSpherePosition.z);
+    meshBaseSphere.castShadow = true;
+    armMesh.add(meshBaseSphere);
 
-    arm.add(baseCube.mesh);
+    //BASE ARM
+    let geometryBasePole = new THREE.BoxGeometry(basePoleSize.x, basePoleSize.y, basePoleSize.z);
+    geometryBasePole.translate(0, basePoleSize.y / 2, 0);
+    let meshBasePole = new THREE.Mesh(geometryBasePole, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff }));
+    meshBasePole.position.y = basePolePosition.y;
+    //meshBasePole.position.set(0, baseSphereRadius, 0);
+    meshBaseSphere.add(meshBasePole);
 
-    let compoundShape = new Ammo.btCompoundShape();
-    let baseCubeShape = new Ammo.btBoxShape(new Ammo.btVector3(2, 2, 2));
 
-    let trans1 = new Ammo.btTransform();
-    trans1.setIdentity();
-    trans1.setOrigin(new Ammo.btVector3(0, 0, 0));
 
-    compoundShape.addChildShape(trans1, baseCubeShape);
+    armMesh.castShadow = true;
+    armMesh.recieveShadow = true;
 
-    let rigidBody = createAmmoRigidBody(compoundShape, arm, 0.2, 0.9, { x: 0, y: 0, z: 0 }, 0);
-    arm.userData.physicsBody = rigidBody;
-    // Legger til physics world:
+    let armShape = new Ammo.btCompoundShape();
+    let baseSphereShape = new Ammo.btSphereShape(baseSphereRadius);
+    let basePoleShape = new Ammo.btBoxShape(new Ammo.btVector3(basePoleSize.x / 2, basePoleSize.y / 2, basePoleSize.z / 2));
+
+
+    let baseSphereTransform = new Ammo.btTransform();
+    baseSphereTransform.setIdentity();
+    baseSphereTransform.setOrigin(new Ammo.btVector3(baseSpherePosition.x, baseSpherePosition.y, baseSpherePosition.z));
+    armShape.addChildShape(baseSphereTransform, baseSphereShape);
+
+
+    let basePoleTransform = new Ammo.btTransform();
+    basePoleTransform.setIdentity();
+    basePoleTransform.setOrigin(new Ammo.btVector3(basePolePosition.x, basePolePosition.y, basePolePosition.z));
+    armShape.addChildShape(basePoleTransform, basePoleShape);
+
+
+
+    let rigidBody = createAmmoRigidBody(armShape, armMesh, 0.2, 0.9, baseSpherePosition, armMass);
+
+    armMesh.userData.physicsBody = rigidBody;
     phy.ammoPhysicsWorld.addRigidBody(rigidBody);
 
 
-    addMeshToScene(arm);
-    phy.rigidBodies.push(arm);
-    rigidBody.threeMesh = arm;
+
+
+    addMeshToScene(armMesh);
+    phy.rigidBodies.push(armMesh);
+    rigidBody.threeMesh = armMesh;
+    //let sphereBase = createSphere(textureObject[1], "sphereBase", 10);
+    //
+    //let baseCube = createCube();
+    //
+    //arm.add(sphereBase.mesh);
+    //
+    //let compoundShape = new Ammo.btCompoundShape();
+    //let baseCubeShape = new Ammo.btBoxShape(new Ammo.btVector3(2, 2, 2));
+    //
+    //let trans1 = new Ammo.btTransform();
+    //trans1.setIdentity();
+    //trans1.setOrigin(new Ammo.btVector3(0, 0, 0));
+    //
+    //compoundShape.addChildShape(trans1, baseCubeShape);
+    //
+    //let rigidBody = createAmmoRigidBody(compoundShape, arm, 0.2, 0.9, { x: 0, y: 0, z: 0 }, 0);
+    //arm.userData.physicsBody = rigidBody;
+    //// Legger til physics world:
+    //phy.ammoPhysicsWorld.addRigidBody(rigidBody);
+    //
+    //
 
 
 
