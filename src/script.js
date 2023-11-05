@@ -2,12 +2,7 @@ import './style.css';
 
 import * as THREE from "three";
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
-import { createArmMesh } from "./armGroup.js"
 
-import {
-    createAmmoWorld,
-    updatePhysics
-} from "./myAmmoHelper.js";
 
 import {
     createThreeScene,
@@ -18,12 +13,9 @@ import {
 
 
 
-import { createAmmoXZPlane } from "./ammoXZPlane.js";
+import { createXZPlane } from "./xzPlane.js";
 
 import { createArm } from "./createArm.js";
-
-import { createSphere } from "./sphere.js";
-import { createCylinder } from "./cylinder.js";
 
 
 export const XZPLANE_SIDELENGTH = 100;
@@ -31,7 +23,7 @@ export const XZPLANE_SIDELENGTH = 100;
 //console.log(window.location.pathname);
 
 export const ri = {
-    currentlyPressedKeys: [],
+    currentlyPressedKeys: {},
     scene: undefined,
     renderer: undefined,
     camera: undefined,
@@ -46,8 +38,6 @@ export function main() {
 
     createThreeScene();
 
-
-    createAmmoWorld();
     /**
      * Trackball control implementation
      */
@@ -64,7 +54,7 @@ export function main() {
     document.addEventListener('keydown', handleKeyDown, false)
 
 
-    addAmmoSceneLoader();
+    addSceneLoader();
 
 }
 
@@ -78,8 +68,8 @@ function handleKeyDown(event) {
     ri.currentlyPressedKeys[event.code] = true;
 }
 
-function addAmmoSceneLoader() {
-    let loadList = ["/img/bird1.png", "/img/bird1.png"]
+function addSceneLoader() {
+    let loadList = ["/img/bare.png", "/img/joint.png", "/img/arm.png", "/img/bird1.png"]
 
     const loadingManager = new THREE.LoadingManager();
     const textureLoader = new THREE.TextureLoader(loadingManager);
@@ -102,18 +92,35 @@ function addAmmoSceneLoader() {
     };
 
     loadingManager.onLoad = () => {
-        addAmmoSceneObjects(textureObjects);
+        addSceneObjects(textureObjects);
     }
 
 
 }
 
-function addAmmoSceneObjects(textureObjects) {
+function addSceneObjects(textureObjects) {
 
-    //createSphere("base", 5, 0, textureObjects[1], 0xA8A8F8);
-    createAmmoXZPlane(textureObjects[0]);
-    //createCylinder(textureObjects[1]);
-    createArm(textureObjects);
+    createXZPlane(textureObjects[0], { x: 0, y: -50, z: 0 });
+    createXZPlane(textureObjects[0], { x: 0, y: 50, z: 0 });
+
+    let arm = createArm(textureObjects);
+    arm.baseRot = 0.0;
+    arm.firstJointZRot = Math.PI / 4;
+    arm.secondJointZRot = -Math.PI / 4;
+    arm.thirdJointZRot = -Math.PI / 4;
+    arm.gripExtensionY = 5;
+
+    arm.gripRotY = 0;
+
+    arm.firstLeftDigitRotX = -Math.PI / 4;
+    arm.secondLeftDigitRotX = Math.PI / 4;
+    arm.thirdLeftDigitRotX = Math.PI / 4;
+
+    arm.firstRightDigitRotX = Math.PI / 4;
+    arm.secondRightDigitRotX = -Math.PI / 4;
+    arm.thirdRightDigitRotX = -Math.PI / 4;
+
+
 
     animate(0);
 }
@@ -122,110 +129,54 @@ function addAmmoSceneObjects(textureObjects) {
 
 
 
-function animate(currentTime, myThreeScene, myAmmoPhysicsWorld) {
-    window.requestAnimationFrame((currentTime) => { animate(currentTime, myThreeScene, myAmmoPhysicsWorld); });
+function animate(currentTime, myThreeScene) {
+    window.requestAnimationFrame((currentTime) => { animate(currentTime, myThreeScene); });
 
     let delta = ri.clock.getDelta();
 
     ri.controls.update();
 
 
-    updatePhysics(delta);
+    let arm = ri.scene.getObjectByName("arm");
+    arm.rotation.y = arm.baseRot;
+
+    let firstJoint = ri.scene.getObjectByName("FirstJointGroup");
+    firstJoint.rotation.z = arm.firstJointZRot;
+
+    let secondJoint = ri.scene.getObjectByName("SecondJointGroup");
+    secondJoint.rotation.z = arm.secondJointZRot;
+
+    let thirdJoint = ri.scene.getObjectByName("ThirdJointGroup");
+    thirdJoint.rotation.z = arm.thirdJointZRot;
 
 
-    //let arm = ri.scene.getObjectByName("arm");
-    //arm.rotation.y = arm.baseRot;
-    //
-    //let lowerJointArm = arm.getObjectByName("lowerJointArm", true);
-    //lowerJointArm.rotation.x = arm.joint1Rot;
-    //
-    //let midArmJoint = arm.getObjectByName("midArmJoint", true);
-    //midArmJoint.rotation.x = arm.joint2Rot;
+    let gripRod = ri.scene.getObjectByName("Grip");
+    gripRod.position.y = arm.gripExtensionY;
+    gripRod.rotation.y = arm.gripRotY;
 
 
-    //handleKeys(delta, arm);
+    let firstLeftDigit = ri.scene.getObjectByName("FirstLeftDigit");
+    firstLeftDigit.rotation.x = arm.firstLeftDigitRotX;
+
+    let secondLeftDigit = ri.scene.getObjectByName("SecondLeftDigit");
+    secondLeftDigit.rotation.x = arm.secondLeftDigitRotX;
+
+    let thirdLeftDigit = ri.scene.getObjectByName("ThirdLeftDigit");
+    thirdLeftDigit.rotation.x = arm.thirdLeftDigitRotX;
+
+    let firstRightDigit = ri.scene.getObjectByName("FirstRightDigit");
+    firstRightDigit.rotation.x = arm.firstRightDigitRotX;
+
+    let secondRightDigit = ri.scene.getObjectByName("SecondRightDigit");
+    secondRightDigit.rotation.x = arm.secondRightDigitRotX;
+
+    let thirdRightDigit = ri.scene.getObjectByName("ThirdRightDigit");
+    thirdRightDigit.rotation.x = arm.thirdRightDigitRotX;
+
+    handleKeys(delta, arm);
 
     renderScene();
 }
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// function OLDanimate(currentTime) {
-//     window.requestAnimationFrame((currentTime) => { animate(currentTime); });
-// 
-//     let delta = ri.clock.getDelta();
-// 
-//     ri.controls.update();
-// 
-//     let arm = ri.scene.getObjectByName("arm");
-//     arm.rotation.y = arm.baseRot;
-// 
-//     let lowerJointArm = arm.getObjectByName("lowerJointArm", true);
-//     lowerJointArm.rotation.x = arm.joint1Rot;
-// 
-//     let midArmJoint = arm.getObjectByName("midArmJoint", true);
-//     midArmJoint.rotation.x = arm.joint2Rot;
-// 
-// 
-//     handleKeys(delta, arm);
-// 
-//     renderScene();
-// }
-
-
-
-
-// function addSceneObjects() {
-//     const loader = new THREE.TextureLoader();
-// 
-// 
-//     loader.load(
-//         '/bird1.png',
-//         (textureObject) => {
-//             let gPlane = new THREE.PlaneGeometry(600, 600, 10, 10);
-//             let mPlane = new THREE.MeshLambertMaterial({ color: 0x91aff11, side: THREE.DoubleSide, wireframe: false });
-//             let meshPlane = new THREE.Mesh(gPlane, mPlane);
-//             meshPlane.rotation.x = Math.PI / 2;
-//             meshPlane.receiveShadow = true;
-//             ri.scene.add(meshPlane);
-// 
-//             let arm = createArmMesh(textureObject);
-//             arm.name = "arm";
-//             arm.baseRot = 0.0;
-//             arm.joint1Rot = 0.0;
-//             arm.joint2Rot = 0.0;
-//             ri.scene.add(arm);
-// 
-//             animate(0);
-// 
-//         },
-//         undefined,
-//         (error) => {
-//             console.log(error);
-//         }
-//     )
-// 
-// }

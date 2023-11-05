@@ -45,15 +45,16 @@ export function createThreeScene() {
      * Camera setup
      */
     ri.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 10000);
-    ri.camera.position.x = 230;
-    ri.camera.position.y = 400;
-    ri.camera.position.z = 350;
+    ri.camera.position.x = 100;
+    ri.camera.position.y = 0;
+    ri.camera.position.z = 0;
 }
 
 export function addLights() {
 
     const ambientFolder = ri.lilGui.addFolder('Ambient Light');
     const directionalFolder = ri.lilGui.addFolder('Directional Light');
+    const spotFolder = ri.lilGui.addFolder('Spot Light');
 
 
     //AMBIENT
@@ -69,7 +70,7 @@ export function addLights() {
     //DIRECTIONALLIGHT
 
     let directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    directionalLight.position.set(0, 100, 0);
+    directionalLight.position.set(100, 20, 0);
     directionalLight.castShadow = true;
     directionalLight.visible = true;
 
@@ -104,6 +105,31 @@ export function addLights() {
     ri.scene.add(directionalLight);
 
 
+    //SPOTLIGHT
+    const spotLight = new THREE.SpotLight(0xffffff, 0.5, 0, Math.PI * 0.1, 0, 0);
+    spotLight.visible = true;
+    spotLight.position.set(-20, -50, 0);
+    spotLight.target.position.set(0, 50, 0);
+    spotLight.shadow.mapSize.width = 1024;
+    spotLight.shadow.mapSize.height = 1024;
+    spotLight.shadow.camera.near = 5;
+    spotLight.shadow.camera.far = 110;
+    spotLight.shadow.camera.fov = 800;
+    ri.scene.add(spotLight);
+    ri.scene.add(spotLight.target);
+
+    spotFolder.add(spotLight, 'visible').name("On/Off");
+    spotFolder.add(spotLight, 'intensity').min(0).max(1).step(0.01).name("Intensity");
+    spotFolder.addColor(directionalLight, 'color').name("Color");
+    spotFolder.add(spotLight.position, 'y').min(0).max(100).step(1).name("Y");
+    spotFolder.add(spotLight.position, 'x').min(-50).max(50).step(1).name("X");
+    spotFolder.add(spotLight.position, 'z').min(-50).max(50).step(1).name("Z");
+
+    spotFolder.add(spotLight.target.position, 'y').min(-50).max(50).step(1).name("Target Y");
+    spotFolder.add(spotLight.target.position, 'x').min(-50).max(50).step(1).name("Target X");
+    spotFolder.add(spotLight.target.position, 'z').min(-50).max(50).step(1).name("Target Z");
+
+
 }
 
 export function renderScene() {
@@ -123,6 +149,7 @@ export function onWindowResize() {
 export function handleKeys(delta, arm) {
 
     let rotationSpeed = (Math.PI);
+    let extentionSpeed = 10;
 
     if (ri.currentlyPressedKeys["KeyA"]) {
         arm.baseRot = arm.baseRot + (rotationSpeed * delta);
@@ -134,24 +161,73 @@ export function handleKeys(delta, arm) {
     }
 
 
-    if (ri.currentlyPressedKeys["KeyS"]) {
-        arm.joint1Rot = arm.joint1Rot + (rotationSpeed * delta);
-        arm.joint1Rot %= (Math.PI * 2);
+    if (ri.currentlyPressedKeys["KeyR"]) {
+        arm.firstJointZRot = arm.firstJointZRot + (rotationSpeed * delta);
+        arm.firstJointZRot %= (Math.PI * 2);
     }
-    if (ri.currentlyPressedKeys["KeyW"]) {
-        arm.joint1Rot = arm.joint1Rot - (rotationSpeed * delta);
-        arm.joint1Rot %= (Math.PI * 2);
+    if (ri.currentlyPressedKeys["KeyT"]) {
+        arm.firstJointZRot = arm.firstJointZRot - (rotationSpeed * delta);
+        arm.firstJointZRot %= (Math.PI * 2);
     }
 
 
+    if (ri.currentlyPressedKeys["KeyF"]) {
+        arm.secondJointZRot = arm.secondJointZRot + (rotationSpeed * delta);
+        arm.secondJointZRot %= (Math.PI * 2);
+    }
+    if (ri.currentlyPressedKeys["KeyG"]) {
+        arm.secondJointZRot = arm.secondJointZRot - (rotationSpeed * delta);
+        arm.secondJointZRot %= (Math.PI * 2);
+    }
+
+    if (ri.currentlyPressedKeys["KeyC"]) {
+        arm.thirdJointZRot = arm.thirdJointZRot + (rotationSpeed * delta);
+        arm.thirdJointZRot %= (Math.PI * 2);
+    }
     if (ri.currentlyPressedKeys["KeyV"]) {
-        arm.joint2Rot = arm.joint2Rot + (rotationSpeed * delta);
-        arm.joint2Rot %= (Math.PI * 2);
+        arm.thirdJointZRot = arm.thirdJointZRot - (rotationSpeed * delta);
+        arm.thirdJointZRot %= (Math.PI * 2);
     }
-    if (ri.currentlyPressedKeys["KeyB"]) {
-        arm.joint2Rot = arm.joint2Rot - (rotationSpeed * delta);
-        arm.joint2Rot %= (Math.PI * 2);
+
+    if (ri.currentlyPressedKeys["Comma"]) {
+        arm.gripRotY = arm.gripRotY + (rotationSpeed * delta);
+        arm.gripRotY %= (Math.PI * 2);
     }
+    if (ri.currentlyPressedKeys["Period"]) {
+        arm.gripRotY = arm.gripRotY - (rotationSpeed * delta);
+        arm.gripRotY %= (Math.PI * 2);
+    }
+
+
+    if (ri.currentlyPressedKeys["KeyW"] && arm.gripExtensionY < 15) {
+        arm.gripExtensionY = arm.gripExtensionY + (extentionSpeed * delta);
+    }
+    if (ri.currentlyPressedKeys["KeyS"] && arm.gripExtensionY > 5) {
+        arm.gripExtensionY = arm.gripExtensionY - (extentionSpeed * delta);
+    }
+
+    if (ri.currentlyPressedKeys["KeyQ"]) {
+        if (arm.firstLeftDigitRotX < -Math.PI / 8) {
+            arm.firstLeftDigitRotX = arm.firstLeftDigitRotX + (rotationSpeed * delta);
+            arm.firstLeftDigitRotX %= (Math.PI * 2);
+
+
+            arm.firstRightDigitRotX = arm.firstRightDigitRotX - (rotationSpeed * delta);
+            arm.firstRighttDigitRotX %= (Math.PI * 2);
+        }
+    }
+    if (ri.currentlyPressedKeys["KeyE"]) {
+        if (arm.firstLeftDigitRotX > -Math.PI / 2) {
+            arm.firstLeftDigitRotX = arm.firstLeftDigitRotX - (rotationSpeed * delta);
+            arm.firstLeftDigitRotX %= (Math.PI * 2);
+
+
+            arm.firstRightDigitRotX = arm.firstRightDigitRotX + (rotationSpeed * delta);
+            arm.firstRighttDigitRotX %= (Math.PI * 2);
+        }
+    }
+
+
 }
 
 export function addMeshToScene(mesh) {

@@ -1,298 +1,213 @@
-import * as THREE from "three"
-import { createAmmoRigidBody, phy } from "./myAmmoHelper.js";
+import * as THREE from "three";
 import { addMeshToScene } from "./myThreeHelper.js";
-
-
-import { createSphere } from "./sphere.js";
-import { createCylinder } from "./cylinder.js";
-import { createCube } from "./cube.js";
-
-/**
- * 
- * 
-
-I am assuming that what you mean is that you want an object to rotate around a specific point within it's geometry.
-
-For example, the cylinderGeometry rotates around it's center. Suppose you want it to rotate around its end.
-
-What you need to do is translate the cylinder geometry right after it is created so that the desired point within the geometry is now at the origin.
-
-geometry.translate( 0, cylinderHeight/2, 0 );
-
-Now, when you rotate the cylinder, it will now rotate around its end, rather than its middle.
-
-The end that it is rotating around will also be located at the position you have set for the cylinder mesh.
-
-Obviously, you can do this with any geometry, not just cylinders.
-
-three.js r.147
-
-// CYLINDER
-var cyl_material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
-var cyl_width = 1;
-var cyl_height = 5;
-// THREE.CylinderGeometry(bottomRadius, topRadius, height, segmentsRadius, segmentsHeight, openEnded )
-var cylGeometry = new THREE.CylinderGeometry(cyl_width, cyl_width, cyl_height, 20, 1, false);
-// translate the cylinder geometry so that the desired point within the geometry is now at the origin
-cylGeometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, cyl_height/2, 0 ) );
-var cylinder = new THREE.Mesh(cylGeometry, cyl_material);
-
-scene.add( cylinder );    
-
-
- */
 
 
 
 export function createArm(textureObject) {
-    let armMass = 0;
+
+    //BASEGROUP INFO
+    let baseGroupPosition = { x: 0, y: 0, z: 0 };
 
     //shpere info
     let baseSphereRadius = 10;
-    let baseSpherePosition = { x: 0, y: 0, z: 0 };
+    let baseSpherePosition = { x: 0, y: 50, z: 0 };
 
     //basepole info
-    let basePoleSize = { x: 5, y: 20, z: 5 };
+    let basePoleSize = { x: 5, y: 15, z: 5 };
     let basePolePosition = { x: 0, y: baseSphereRadius - 1, z: 0 };
+
+    //FIRST ARM INFO
+    let firstArmSize = { width: 4.5, height: 20, depth: 4.5 };
+    let firstArmPosition = { x: 0, y: 0, z: 0 };
+
+    //SECOND ARM INFO
+    let secondArmSize = { width: 4.5, height: 20, depth: 4.5 };
+    let secondArmPosition = { x: 0, y: 0, z: 0 };
+
+    //SECOND ARM INFO
+    let thirdArmSize = { width: 4.5, height: 20, depth: 4.5 };
+    let thirdArmPosition = { x: 0, y: 0, z: 0 };
+
+    // JOINT INFOS
+    let firstJointSize = { radiusTop: 4, radiusBottom: 4, height: 5, radialSegments: 32, heightSegments: 1, openEnded: false };
+    let firstJointPosition = { x: 0, y: basePoleSize.y - firstJointSize.radiusTop, z: -5 };
+
+    let secondJointSize = { radiusTop: 4, radiusBottom: 4, height: 5, radialSegments: 32, heightSegments: 1, openEnded: false };
+    let secondJointPosition = { x: 0, y: firstArmSize.height - firstJointSize.radiusTop / 2, z: 4.75 };
+
+    let thirdJointSize = { radiusTop: 4, radiusBottom: 4, height: 5, radialSegments: 32, heightSegments: 1, openEnded: false };
+    let thirdJointPosition = { x: 0, y: firstArmSize.height - firstJointSize.radiusTop / 2, z: 4.75 };
+
+    // GRIP INFO
+    let gripPosition = { x: 0, y: 10, z: 0 };
+    let gripRodSize = { radiusTop: 1.5, radiusBottom: 1.5, height: 15, radialSegments: 32, heightSegments: 1, openEnded: false }
+
+    let gripCollarPosition = { x: 0, y: gripRodSize.height, z: 0 };
+    let gripCollarSize = { radiusTop: 3, radiusBottom: 3, height: 2, radialSegments: 32, heightSegments: 1, openEnded: false }
+
+
+    let fingersPosition = { x: 0, y: gripCollarSize.height, z: 0 };
 
 
     //create base group
     const armMesh = new THREE.Group();
     armMesh.name = "arm";
 
+    const baseMesh = new THREE.Group();
+    baseMesh.name = "baseMesh";
+    baseMesh.position.set(...Object.values(baseGroupPosition));
+    armMesh.add(baseMesh);
+
+    const jointMaterial = new THREE.MeshStandardMaterial({ map: textureObject[1], color: 0xffffff });
+    const armMaterial = new THREE.MeshStandardMaterial({ map: textureObject[2], color: 0xffffff });
+
 
     // BASE SPHERE
     let geometryBaseSphere = new THREE.SphereGeometry(baseSphereRadius, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
-    let meshBaseSphere = new THREE.Mesh(geometryBaseSphere, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff, side: THREE.DoubleSide }));
+    let meshBaseSphere = new THREE.Mesh(geometryBaseSphere, armMaterial);
     meshBaseSphere.name = "baseSphere"
     meshBaseSphere.position.set(baseSpherePosition.x, baseSpherePosition.y, baseSpherePosition.z);
+    meshBaseSphere.rotateX(Math.PI);
     meshBaseSphere.castShadow = true;
-    armMesh.add(meshBaseSphere);
+    meshBaseSphere.receiveShadow = true;
+    baseMesh.add(meshBaseSphere);
 
     //BASE ARM
     let geometryBasePole = new THREE.BoxGeometry(basePoleSize.x, basePoleSize.y, basePoleSize.z);
     geometryBasePole.translate(0, basePoleSize.y / 2, 0);
-    let meshBasePole = new THREE.Mesh(geometryBasePole, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff }));
+    let meshBasePole = new THREE.Mesh(geometryBasePole, new THREE.MeshStandardMaterial({ map: textureObject[1], color: 0xffffff }));
     meshBasePole.position.y = basePolePosition.y;
-    //meshBasePole.position.set(0, baseSphereRadius, 0);
+
+    meshBasePole.castShadow = true;
+    meshBasePole.receiveShadow = true;
     meshBaseSphere.add(meshBasePole);
 
 
+    //FIRST JOINT GROUP
+    const firstJointMesh = new THREE.Group();
+    firstJointMesh.name = "FirstJointGroup";
+    firstJointMesh.position.set(...Object.values(firstJointPosition));
+    meshBasePole.add(firstJointMesh)
+
+    //FIRST JOINT
+    let meshFirstArm = createJointArm(firstJointMesh, firstJointSize, firstArmSize, jointMaterial, armMaterial, firstArmPosition);
+
+    //SECOND JOINT GROUP
+    const secondJointMesh = new THREE.Group();
+    secondJointMesh.name = "SecondJointGroup";
+    secondJointMesh.position.set(...Object.values(secondJointPosition));
+    meshFirstArm.add(secondJointMesh)
+
+    //SECOND JOINT
+    let meshSecondArm = createJointArm(secondJointMesh, secondJointSize, secondArmSize, jointMaterial, armMaterial, secondArmPosition);
+
+    //THIRD JOINT GROUP
+    const thirdJointMesh = new THREE.Group();
+    thirdJointMesh.name = "ThirdJointGroup";
+    thirdJointMesh.position.set(...Object.values(thirdJointPosition));
+    meshSecondArm.add(thirdJointMesh)
+
+    //THIRD JOINT
+    let meshThirdArm = createJointArm(thirdJointMesh, secondJointSize, secondArmSize, jointMaterial, armMaterial, secondArmPosition);
+
+    // GRIP
+    const gripMesh = new THREE.Group();
+    gripMesh.name = "Grip";
+    gripMesh.position.set(...Object.values(gripPosition));
+    meshThirdArm.add(gripMesh);
+
+    //GRIP ROD
+    let geometryGripRod = new THREE.CylinderGeometry(...Object.values(gripRodSize));
+    geometryGripRod.translate(0, gripRodSize.height / 2, 0);
+    let meshGripRod = new THREE.Mesh(geometryGripRod, new THREE.MeshStandardMaterial({ map: textureObject[1], color: 0xffffff }));
+
+    meshGripRod.castShadow = true;
+    meshGripRod.receiveShadow = true;
+    gripMesh.add(meshGripRod);
+
+    //GRIP Collar
+    let geometryGripCollar = new THREE.CylinderGeometry(...Object.values(gripCollarSize));
+    geometryGripCollar.translate(0, gripCollarSize.height / 2, 0);
+    let meshGripCollar = new THREE.Mesh(geometryGripCollar, new THREE.MeshStandardMaterial({ map: textureObject[1], color: 0xffffff }));
+    meshGripCollar.position.set(...Object.values(gripCollarPosition));
+
+    meshGripCollar.castShadow = true;
+    meshGripCollar.receiveShadow = true;
+    meshGripRod.add(meshGripCollar);
+
+    //GRIP FINGERS
+    let fingerGroup = new THREE.Group();
+    fingerGroup.name = "Fingers"
+    fingerGroup.position.set(...Object.values(fingersPosition));
+    meshGripCollar.add(fingerGroup);
+
+    let fingerSize = { width: 3, height: 1.5, depth: 1 }
+
+    let fingerMaterial = new THREE.MeshStandardMaterial({ map: textureObject[1], color: 0xffffff });
+    let firstLeftDigit = createFinger(fingerGroup, "FirstLeftDigit", fingerMaterial, fingerSize, 0, 0.5, -2);
+    let secondLeftDigit = createFinger(firstLeftDigit, "SecondLeftDigit", fingerMaterial, fingerSize, 0, fingerSize.height, 0);
+    let thirdLeftDigit = createFinger(secondLeftDigit, "ThirdLeftDigit", fingerMaterial, fingerSize, 0, fingerSize.height, 0);
+
+
+    let firstRightDigit = createFinger(fingerGroup, "FirstRightDigit", fingerMaterial, fingerSize, 0, 0.5, 2);
+    let secondRightDigit = createFinger(firstRightDigit, "SecondRightDigit", fingerMaterial, fingerSize, 0, fingerSize.height, 0);
+    let thirdRightDigit = createFinger(secondRightDigit, "ThirdRightDigit", fingerMaterial, fingerSize, 0, fingerSize.height, 0);
 
     armMesh.castShadow = true;
     armMesh.recieveShadow = true;
 
-    let armShape = new Ammo.btCompoundShape();
-    let baseSphereShape = new Ammo.btSphereShape(baseSphereRadius);
-    let basePoleShape = new Ammo.btBoxShape(new Ammo.btVector3(basePoleSize.x / 2, basePoleSize.y / 2, basePoleSize.z / 2));
-
-
-    let baseSphereTransform = new Ammo.btTransform();
-    baseSphereTransform.setIdentity();
-    baseSphereTransform.setOrigin(new Ammo.btVector3(baseSpherePosition.x, baseSpherePosition.y, baseSpherePosition.z));
-    armShape.addChildShape(baseSphereTransform, baseSphereShape);
-
-
-    let basePoleTransform = new Ammo.btTransform();
-    basePoleTransform.setIdentity();
-    basePoleTransform.setOrigin(new Ammo.btVector3(basePolePosition.x, basePolePosition.y, basePolePosition.z));
-    armShape.addChildShape(basePoleTransform, basePoleShape);
-
-
-
-    let rigidBody = createAmmoRigidBody(armShape, armMesh, 0.2, 0.9, baseSpherePosition, armMass);
-
-    armMesh.userData.physicsBody = rigidBody;
-    phy.ammoPhysicsWorld.addRigidBody(rigidBody);
-
-
-
-
     addMeshToScene(armMesh);
-    phy.rigidBodies.push(armMesh);
-    rigidBody.threeMesh = armMesh;
-    //let sphereBase = createSphere(textureObject[1], "sphereBase", 10);
-    //
-    //let baseCube = createCube();
-    //
-    //arm.add(sphereBase.mesh);
-    //
-    //let compoundShape = new Ammo.btCompoundShape();
-    //let baseCubeShape = new Ammo.btBoxShape(new Ammo.btVector3(2, 2, 2));
-    //
-    //let trans1 = new Ammo.btTransform();
-    //trans1.setIdentity();
-    //trans1.setOrigin(new Ammo.btVector3(0, 0, 0));
-    //
-    //compoundShape.addChildShape(trans1, baseCubeShape);
-    //
-    //let rigidBody = createAmmoRigidBody(compoundShape, arm, 0.2, 0.9, { x: 0, y: 0, z: 0 }, 0);
-    //arm.userData.physicsBody = rigidBody;
-    //// Legger til physics world:
-    //phy.ammoPhysicsWorld.addRigidBody(rigidBody);
-    //
-    //
 
-
-
-    //create material for mesh -  type phong
-
-    //The base of the arm
-    //let footCylinderGeometry = new THREE.CylinderGeometry(20, 30, 15, 20, 5, false);
-    //let footMesh = new THREE.Mesh(footCylinderGeometry, material);
-    //
-    //footMesh.castShadow = true;
-    //footMesh.name = 'foot';
-    //footMesh.position.x = 0;
-    //footMesh.position.y = 8;
-    //footMesh.position.z = 0;
-    //arm.add(footMesh);
-    //
-    ////lower arm
-    //let lowerArmCylinderGeometry = new THREE.CylinderGeometry(4, 4, 100, 8, 1, false);
-    //let lowerArmMesh = new THREE.Mesh(lowerArmCylinderGeometry, material);
-    //
-    //lowerArmMesh.castShadow = true;
-    //lowerArmMesh.name = 'LowerArm';
-    //lowerArmMesh.position.x = 0;
-    //lowerArmMesh.position.y = 57.5;
-    //lowerArmMesh.position.z = 0;
-    //footMesh.add(lowerArmMesh);
-    //
-    ////joint and arm for lower to mid
-    //const lowerJointArm = new THREE.Group();
-    //lowerJointArm.position.x = 0;
-    //lowerJointArm.position.y = 50;
-    //lowerJointArm.position.z = 0;
-    //lowerJointArm.name = "lowerJointArm";
-    //
-    ////lower joint
-    //let lowerJointSphereGeometry = new THREE.SphereGeometry(10, 8, 6);
-    //let lowerJointMesh = new THREE.Mesh(lowerJointSphereGeometry, material);
-    //
-    //lowerJointMesh.castShadow = true;
-    //lowerJointMesh.name = 'LowerJoint';
-    //lowerJointArm.add(lowerJointMesh);
-    //
-    //// the mid arm.
-    //let midArmCylinderGeometry = new THREE.CylinderGeometry(4, 4, 100, 8, 1, false);
-    //let midArmMesh = new THREE.Mesh(midArmCylinderGeometry, material);
-    //
-    //midArmMesh.castShadow = true;
-    //midArmMesh.name = 'LowerArm';
-    //midArmMesh.position.x = 0;
-    //midArmMesh.position.y = 50;
-    //midArmMesh.position.z = 0;
-    //lowerJointArm.add(midArmMesh);
-    //
-    ////add lower joint and mid arm to base
-    //lowerArmMesh.add(lowerJointArm)
-    //
-    //
-    //let midArmJoint = new THREE.Group();
-    //
-    //midArmJoint.position.x = 0;
-    //midArmJoint.position.y = 100;
-    //midArmJoint.position.z = 0;
-    //midArmJoint.name = "midArmJoint";
-    //
-    ////mid joint
-    //let midJointSphereGeometry = new THREE.SphereGeometry(10, 8, 6);
-    //let midJointMesh = new THREE.Mesh(midJointSphereGeometry, material);
-    //
-    //midJointMesh.castShadow = true;
-    //midJointMesh.name = 'MidJoint';
-    //midArmJoint.add(midJointMesh);
-    //
-    //// the upper arm
-    //let upperArmCylinderGeometry = new THREE.CylinderGeometry(4, 4, 100, 8, 1, false);
-    //let upperArmMesh = new THREE.Mesh(upperArmCylinderGeometry, material);
-    //
-    //upperArmMesh.castShadow = true;
-    //upperArmMesh.name = 'LowerArm';
-    //upperArmMesh.position.x = 0;
-    //upperArmMesh.position.y = 50;
-    //upperArmMesh.position.z = 0;
-    //midArmJoint.add(upperArmMesh);
-    //
-    //lowerJointArm.add(midArmJoint);
-    //
-    //
-    //let grip = new THREE.Group();
-    //
-    //grip.position.x = 0;
-    //grip.position.y = 100;
-    //grip.position.z = 0;
-    //grip.name = "grip";
-    //
-    //let gripCylinderGemoetry = new THREE.CylinderGeometry(4, 4, 100, 8, 1, false);
-    //let gripCylinderMesh = new THREE.Mesh(gripCylinderGemoetry, material);
-    //
-    //gripCylinderMesh.castShadow = true;
-    //gripCylinderMesh.name = "GripCylinder";
-    //grip.add(gripCylinderMesh);
-    //
-    //
-    //let gripCuffGeometry = new THREE.CylinderGeometry(8, 8, 5, 8, 1, false);
-    //let gripCuffMesh = new THREE.Mesh(gripCuffGeometry, material);
-    //
-    //gripCuffMesh.castShadow = true;
-    //gripCuffMesh.name = "GripCuff";
-    //gripCuffMesh.position.x = 0;
-    //gripCuffMesh.position.y = 50 - 2.5;
-    //gripCuffMesh.position.z = 0;
-    //gripCylinderMesh.add(gripCuffMesh);
-    //
-    //const fw = 2, fh = 10, fd = 5;
-    //
-    ////let gripFingerLeftGeometry = new THREE.BoxGeometry(lfw, lfh, lfd);
-    ////gripFingerLeftGeometry.translate(0, lfh / 2, 0);
-    ////let gripFingerLeftMesh = new THREE.Mesh(gripFingerLeftGeometry, material);
-    //
-    ////gripFingerLeftMesh.castShadow = true;
-    ////gripFingerLeftMesh.name = "GripFingerLeft";
-    ////gripFingerLeftMesh.position.x = 2;
-    ////gripCuffMesh.add(gripFingerLeftMesh);
-    //
-    //let firstDigitLeft = createFinger(gripCuffMesh, material, fw, fh, fd, "FirstDigitLeft", 2, 0, 0, -Math.PI / 20, new THREE.Vector3(0, 0, 1));
-    //let secondDigitLeft = createFinger(firstDigitLeft, material, fw, fh, fd, "SecondDigitLeft", 0, fh, 0, Math.PI / 20, new THREE.Vector3(0, 0, 1));
-    //let thirdDigitLeft = createFinger(secondDigitLeft, material, fw, fh, fd, "ThirdDigitLeft", 0, fh, 0, Math.PI / 20, new THREE.Vector3(0, 0, 1));
-    //
-    //let firstDigitRight = createFinger(gripCuffMesh, material, fw, fh, fd, "FirstDigitRight", -2, 0, 0, Math.PI / 20, new THREE.Vector3(0, 0, 1));
-    //let secondDigitRight = createFinger(firstDigitRight, material, fw, fh, fd, "SecondDigitRight", 0, fh, 0, -Math.PI / 20, new THREE.Vector3(0, 0, 1));
-    //let thirdDigitRight = createFinger(secondDigitRight, material, fw, fh, fd, "ThirdDigitRight", 0, fh, 0, -Math.PI / 20, new THREE.Vector3(0, 0, 1));
-    //
-    //
-    //
-    //
-    //midArmJoint.add(grip);
-    ////gripCylinderMesh.position.x = 0;
-    //// gripCylinderMesh.position.y = ;
-    //// gripCylinderMesh.position.z = 0;
-
-
-
-
+    return armMesh;
 
 }
 
-function createFinger(parent, material, w, h, d, name, x = 0, y = 0, z = 0, rotation = 0, rotationVector = new THREE.Vector3(0, 0, 0)) {
+function createJointArm(parent, jointSize, armSize, jointMaterial, armMaterial, armPosition) {
+    let geometryFirstJoint = new THREE.CylinderGeometry(...Object.values(jointSize));
+    geometryFirstJoint.rotateX(Math.PI / 2);
+    let meshFirstJoint = new THREE.Mesh(geometryFirstJoint, jointMaterial);
+    meshFirstJoint.castShadow = true;
+    meshFirstJoint.receiveShadow = true;
+    parent.add(meshFirstJoint);
 
-    let gripFingerGeometry = new THREE.BoxGeometry(w, h, d);
-    gripFingerGeometry.translate(0, h / 2, 0);
-    let gripFingerLeftMesh = new THREE.Mesh(gripFingerGeometry, material);
+    let geometryFirstArm = new THREE.BoxGeometry(...Object.values(armSize));
+    geometryFirstArm.translate(0, armSize.height / 2, 0);
+    let meshFirstArm = new THREE.Mesh(geometryFirstArm, armMaterial);
+    meshFirstArm.position.set(...Object.values(armPosition));
+    meshFirstArm.castShadow = true;
+    meshFirstArm.receiveShadow = true;
+    meshFirstJoint.add(meshFirstArm);
 
-    gripFingerLeftMesh.castShadow = true;
-    gripFingerLeftMesh.name = name; // "GripFingerLeft";
-    gripFingerLeftMesh.position.x = x;
-    gripFingerLeftMesh.position.y = y;
-    gripFingerLeftMesh.position.z = z;
-    if (rotation)
-        gripFingerLeftMesh.setRotationFromAxisAngle(rotationVector, rotation);
+    return meshFirstArm;
 
-    parent.add(gripFingerLeftMesh);
+}
 
-    return gripFingerLeftMesh;
+function createFinger(parent, name, material, size = { width: 3, height: 3, depth: 1 }, x = 0, y = 0, z = 0) {
 
+    let geometryFingerJoint = new THREE.CylinderGeometry(size.depth / 2, size.depth / 2, size.width - 0.1, 32, 1, false);
+    geometryFingerJoint.rotateZ(Math.PI / 2);
+
+    let meshFingerJoint = new THREE.Mesh(geometryFingerJoint, material);
+    meshFingerJoint.name = name; // "GripFingerLeft";
+    meshFingerJoint.castShadow = true;
+    meshFingerJoint.receiveShadow = true;
+    meshFingerJoint.position.x = x;
+    meshFingerJoint.position.y = y;
+    meshFingerJoint.position.z = z;
+    parent.add(meshFingerJoint);
+
+
+    let gripFingerGeometry = new THREE.BoxGeometry(size.width, size.height, size.depth);
+    gripFingerGeometry.translate(0, size.height / 2, 0);
+    let gripFingerMesh = new THREE.Mesh(gripFingerGeometry, material);
+    gripFingerMesh.position.y = size.depth / 2 - 0.1;
+    gripFingerMesh.name = name;
+    gripFingerMesh.castShadow = true;
+    gripFingerMesh.receiveShadow = true;
+
+
+    meshFingerJoint.add(gripFingerMesh);
+
+    return gripFingerMesh;
 
 }
