@@ -55,6 +55,7 @@ export function addLights() {
     const ambientFolder = ri.lilGui.addFolder('Ambient Light');
     const directionalFolder = ri.lilGui.addFolder('Directional Light');
     const spotFolder = ri.lilGui.addFolder('Spot Light');
+    const helperFolder = ri.lilGui.addFolder('Light Helper');
 
 
     //AMBIENT
@@ -103,6 +104,9 @@ export function addLights() {
 
     ri.scene.add(lightCamHelper);
     ri.scene.add(directionalLight);
+
+    helperFolder.add(lightCamHelper, 'visible').name("Cam Helper On/Off");
+    helperFolder.add(directionalLightHelper, 'visible').name("Directional Helper On/Off")
 
 
     //SPOTLIGHT
