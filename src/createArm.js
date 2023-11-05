@@ -58,8 +58,8 @@ export function createArm(textureObject) {
     baseMesh.position.set(...Object.values(baseGroupPosition));
     armMesh.add(baseMesh);
 
-    const jointMaterial = new THREE.MeshStandardMaterial({ map: textureObject[1], color: 0xffffff });
-    const armMaterial = new THREE.MeshStandardMaterial({ map: textureObject[2], color: 0xffffff });
+    const jointMaterial = new THREE.MeshStandardMaterial({ map: textureObject[1], metalness: 0.8, color: 0xffffff });
+    const armMaterial = new THREE.MeshStandardMaterial({ map: textureObject[2], metalness: 0.2, color: 0xffffff });
 
 
     // BASE SPHERE

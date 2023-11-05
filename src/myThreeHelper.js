@@ -108,6 +108,7 @@ export function addLights() {
     //SPOTLIGHT
     const spotLight = new THREE.SpotLight(0xffffff, 0.5, 0, Math.PI * 0.1, 0, 0);
     spotLight.visible = true;
+    spotLight.castShadow = true;
     spotLight.position.set(-20, -50, 0);
     spotLight.target.position.set(0, 50, 0);
     spotLight.shadow.mapSize.width = 1024;
