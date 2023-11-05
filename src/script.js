@@ -69,7 +69,7 @@ function handleKeyDown(event) {
 }
 
 function addSceneLoader() {
-    let loadList = ["/img/bare.png", "/img/joint.png", "/img/arm.png", "/img/bird1.png"]
+    let loadList = ["/img/bare.png", "/img/joint.png", "/img/arm.png", "/img/tile.png", "/img/bird1.png"]
 
     const loadingManager = new THREE.LoadingManager();
     const textureLoader = new THREE.TextureLoader(loadingManager);
@@ -100,7 +100,7 @@ function addSceneLoader() {
 
 function addSceneObjects(textureObjects) {
 
-    createXZPlane(textureObjects[0], { x: 0, y: -50, z: 0 });
+    createXZPlane(textureObjects[3], { x: 0, y: -50, z: 0 });
     createXZPlane(textureObjects[0], { x: 0, y: 50, z: 0 });
 
     let arm = createArm(textureObjects);

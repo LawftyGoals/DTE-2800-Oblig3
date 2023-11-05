@@ -108,7 +108,7 @@ export function createArm(textureObject) {
     meshSecondArm.add(thirdJointMesh)
 
     //THIRD JOINT
-    let meshThirdArm = createJointArm(thirdJointMesh, secondJointSize, secondArmSize, jointMaterial, armMaterial, secondArmPosition);
+    let meshThirdArm = createJointArm(thirdJointMesh, thirdJointSize, thirdArmSize, jointMaterial, armMaterial, thirdArmPosition);
 
     // GRIP
     const gripMesh = new THREE.Group();
