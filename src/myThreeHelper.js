@@ -3,6 +3,8 @@ import * as THREE from "three";
 import GUI from "lil-gui";
 import { ri } from "./script.js"
 
+import { pushArmHinge } from "./createArm.js";
+
 
 export function createThreeScene() {
     /**
@@ -120,38 +122,52 @@ export function onWindowResize() {
 
 
 
-export function handleKeys(delta, arm) {
+export function handleKeys(delta) {
 
-    let rotationSpeed = (Math.PI);
+    const armMesh = ri.scene.getObjectByName("arm");
+    console.log(armMesh);
+    let direction = new THREE.Vector3();
+    armMesh.getWorldDirection(direction);
+    let oppositeDirection = new THREE.Vector3();
+    armMesh.getWorldDirection(oppositeDirection).multiplyScalar(-1);
 
-    if (ri.currentlyPressedKeys["KeyA"]) {
-        arm.baseRot = arm.baseRot + (rotationSpeed * delta);
-        arm.baseRot %= (Math.PI * 2);
+    if (ri.currentlyPressedKeys['KeyV']) {
+        pushArmHinge(armMesh, direction);
     }
-    if (ri.currentlyPressedKeys["KeyD"]) {
-        arm.baseRot = arm.baseRot - (rotationSpeed * delta);
-        arm.baseRot %= (Math.PI * 2);
-    }
-
-
-    if (ri.currentlyPressedKeys["KeyS"]) {
-        arm.joint1Rot = arm.joint1Rot + (rotationSpeed * delta);
-        arm.joint1Rot %= (Math.PI * 2);
-    }
-    if (ri.currentlyPressedKeys["KeyW"]) {
-        arm.joint1Rot = arm.joint1Rot - (rotationSpeed * delta);
-        arm.joint1Rot %= (Math.PI * 2);
+    if (ri.currentlyPressedKeys['KeyB']) {
+        pushArmHinge(armMesh, oppositeDirection);
     }
 
-
-    if (ri.currentlyPressedKeys["KeyV"]) {
-        arm.joint2Rot = arm.joint2Rot + (rotationSpeed * delta);
-        arm.joint2Rot %= (Math.PI * 2);
-    }
-    if (ri.currentlyPressedKeys["KeyB"]) {
-        arm.joint2Rot = arm.joint2Rot - (rotationSpeed * delta);
-        arm.joint2Rot %= (Math.PI * 2);
-    }
+    //let rotationSpeed = (Math.PI);
+    //
+    //if (ri.currentlyPressedKeys["KeyA"]) {
+    //    arm.baseRot = arm.baseRot + (rotationSpeed * delta);
+    //    arm.baseRot %= (Math.PI * 2);
+    //}
+    //if (ri.currentlyPressedKeys["KeyD"]) {
+    //    arm.baseRot = arm.baseRot - (rotationSpeed * delta);
+    //    arm.baseRot %= (Math.PI * 2);
+    //}
+    //
+    //
+    //if (ri.currentlyPressedKeys["KeyS"]) {
+    //    arm.joint1Rot = arm.joint1Rot + (rotationSpeed * delta);
+    //    arm.joint1Rot %= (Math.PI * 2);
+    //}
+    //if (ri.currentlyPressedKeys["KeyW"]) {
+    //    arm.joint1Rot = arm.joint1Rot - (rotationSpeed * delta);
+    //    arm.joint1Rot %= (Math.PI * 2);
+    //}
+    //
+    //
+    //if (ri.currentlyPressedKeys["KeyV"]) {
+    //    arm.joint2Rot = arm.joint2Rot + (rotationSpeed * delta);
+    //    arm.joint2Rot %= (Math.PI * 2);
+    //}
+    //if (ri.currentlyPressedKeys["KeyB"]) {
+    //    arm.joint2Rot = arm.joint2Rot - (rotationSpeed * delta);
+    //    arm.joint2Rot %= (Math.PI * 2);
+    //}
 }
 
 export function addMeshToScene(mesh) {

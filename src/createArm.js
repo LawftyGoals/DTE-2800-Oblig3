@@ -47,6 +47,8 @@ scene.add( cylinder );
 export function createArm(textureObject) {
     let armMass = 0;
 
+    let anchorPosition = { x: 0, y: 0, z: 0 };
+
     //shpere info
     let baseSphereRadius = 10;
     let baseSpherePosition = { x: 0, y: 0, z: 0 };
@@ -55,16 +57,37 @@ export function createArm(textureObject) {
     let basePoleSize = { x: 5, y: 20, z: 5 };
     let basePolePosition = { x: 0, y: baseSphereRadius - 1, z: 0 };
 
+    // joint info
+    let firstJointSize = { radiusTop: 4, radiusBottom: 4, height: 5, radialSegments: 32, heightSegments: 1, openEnded: false };
+
 
     //create base group
     const armMesh = new THREE.Group();
     armMesh.name = "arm";
 
 
+    let meshAnchor = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial({ color: 0xb846db, transparent: true, opacity: 0.5 }));
+    meshAnchor.name = "Anchor";
+    meshAnchor.position.set(...Object.values(anchorPosition));
+    meshAnchor.castShadow = true;
+    meshAnchor.receiveShadow = true;
+
+    let anchorShape = new Ammo.btSphereShape(meshAnchor.geometry.parameters.radius);
+    anchorShape.setMargin(0.05);
+    let anchorRigidBody = createAmmoRigidBody(anchorShape, meshAnchor, 0.4, 0.6, anchorPosition, 0);
+
+    meshAnchor.userData.physicsBody = anchorRigidBody;
+    phy.ammoPhysicsWorld.addRigidBody(anchorRigidBody);
+    phy.rigidBodies.push(meshAnchor);
+    anchorRigidBody.threeMesh = meshAnchor;
+
+    addMeshToScene(meshAnchor);
+
+
     // BASE SPHERE
     let geometryBaseSphere = new THREE.SphereGeometry(baseSphereRadius, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     let meshBaseSphere = new THREE.Mesh(geometryBaseSphere, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff, side: THREE.DoubleSide }));
-    meshBaseSphere.name = "baseSphere"
+    meshBaseSphere.name = "BaseSphere"
     meshBaseSphere.position.set(baseSpherePosition.x, baseSpherePosition.y, baseSpherePosition.z);
     meshBaseSphere.castShadow = true;
     armMesh.add(meshBaseSphere);
@@ -74,8 +97,22 @@ export function createArm(textureObject) {
     geometryBasePole.translate(0, basePoleSize.y / 2, 0);
     let meshBasePole = new THREE.Mesh(geometryBasePole, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff }));
     meshBasePole.position.y = basePolePosition.y;
+    meshBasePole.castShadow = true;
+    meshBasePole.receiveShadow = true;
     //meshBasePole.position.set(0, baseSphereRadius, 0);
-    meshBaseSphere.add(meshBasePole);
+    armMesh.add(meshBasePole);
+
+
+    //First Joint
+    let geometryFirstJoint = new THREE.CylinderGeometry(...Object.values(firstJointSize));
+    geometryFirstJoint.rotateX(Math.PI / 2);
+    let meshFirstJoint = new THREE.Mesh(geometryFirstJoint, new THREE.MeshPhongMaterial({ map: textureObject[1], color: 0xffffff }));
+    meshFirstJoint.name = "FirstJoint";
+    meshFirstJoint.position.set(0, 25, 5);
+    meshFirstJoint.castShadow = true;
+    meshFirstJoint.receiveShadow = true;
+
+    armMesh.add(meshFirstJoint);
 
 
 
@@ -111,6 +148,27 @@ export function createArm(textureObject) {
     addMeshToScene(armMesh);
     phy.rigidBodies.push(armMesh);
     rigidBody.threeMesh = armMesh;
+
+
+
+
+
+    const anchorPivot = new Ammo.btVector3(0, 0, 0);
+    const anchorAxis = new Ammo.btVector3(0, 1, 0);
+    const armPivot = new Ammo.btVector3(0, 0, 0);
+    const armAxis = new Ammo.btVector3(0, 1, 0);
+
+    const armHingeConstraint = new Ammo.btHingeConstraint(anchorRigidBody, rigidBody, anchorPivot, armPivot, anchorAxis, armAxis, false);
+
+    armHingeConstraint.setLimit(Infinity, Infinity, 0.9, 0.3, 1.0);
+    armHingeConstraint.enableAngularMotor(true, 0, 0.5);
+    phy.ammoPhysicsWorld.addConstraint(armHingeConstraint, false);
+
+
+
+
+
+
     //let sphereBase = createSphere(textureObject[1], "sphereBase", 10);
     //
     //let baseCube = createCube();
@@ -295,4 +353,17 @@ function createFinger(parent, material, w, h, d, name, x = 0, y = 0, z = 0, rota
     return gripFingerLeftMesh;
 
 
+}
+
+
+export function pushArmHinge(mesh, direction) {
+    if (!mesh.userData.physicsBody)
+        return;
+    const rigidBody = mesh.userData.physicsBody;
+    rigidBody.activate(true);
+    // Gir impuls ytterst på armen:s
+    const armWidth = mesh.children[0].geometry.parameters.width;
+    const relativeVector = new Ammo.btVector3(armWidth / 2, 0, 0);
+    const impulseVector = new Ammo.btVector3(10 * direction.x, 0, 10 * direction.z);
+    rigidBody.applyImpulse(impulseVector, relativeVector);
 }

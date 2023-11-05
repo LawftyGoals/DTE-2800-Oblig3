@@ -143,7 +143,7 @@ function animate(currentTime, myThreeScene, myAmmoPhysicsWorld) {
     //midArmJoint.rotation.x = arm.joint2Rot;
 
 
-    //handleKeys(delta, arm);
+    handleKeys(delta);
 
     renderScene();
 }
